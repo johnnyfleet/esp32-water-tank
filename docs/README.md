@@ -2,7 +2,8 @@
 - [ESP32 Setup](#esp32-setup)
   - [Device](#device)
   - [Pin out Diagram](#pin-out-diagram)
-  - [Tips to setup Arduino in VSCode](#tips-to-setup-arduino-in-vscode)
+  - [Tips to setup ESP32 in VSCode](#tips-to-setup-esp32-in-vscode)
+  - [Erase ESP32](#erase-esp32)
   - [Setup Arduino IDE](#setup-arduino-ide)
     - [Setup ESP32 in ArduinoIDE](#setup-esp32-in-arduinoide)
     - [Fix 'No "Serial" module' issue.](#fix-no-serial-module-issue)
@@ -21,17 +22,26 @@ This guide is a useful diagram to get the wiring right. Also the names are label
 
 ![ESP32S Pin Diagram](./images/esp32-pin-diagram.png "ESP32S Pin Diagram")
 
-## Tips to setup Arduino in VSCode
+## Tips to setup ESP32 in VSCode
 
 If needing to set up again. My working setup uses platform.io extension to work
 
 1. Follow [these instructions](https://randomnerdtutorials.com/vs-code-platformio-ide-esp32-esp8266-arduino/)
-2. Make sure permissions to USB setup right on Manjaro. [This page](https://forum.manjaro.org/t/arduino-ide-dev-ttyacm0-permission-denied/45013) was useful. Specifically:
+2. [Setup udev rules for platform.io](https://docs.platformio.org/en/latest//faq.html#platformio-udev-rules)
+3. Specifically - read the part labelled *Similarly, Arch users may need to add their user to the “uucp” group*. 
 
 ``` bash
-sudo pamac install arduino arduino-avr-core
 sudo usermod -a -G uucp $USER     # log out and back in of course
+sudo usermod -a -G lock $USER     # log out and back in of course
 ```
+1. Set up the right default project location (seems to have issues with the Nextcloud document symlinks otherwise. Follow guide [here](https://community.platformio.org/t/how-to-change-default-new-project-location/2828/2)
+   1. Open new PlatformIDE terminal (within VSCode)
+   2. Enter `pio settings set projects_dir /new/path/projects/dir`
+
+## Erase ESP32
+If you've been playing around with lots of code and want to wipe back to the start you can follow the [steps here](https://community.platformio.org/t/why-i-have-to-keep-pressed-reset-button-every-time-when-loading/6273/4). 
+
+In a PlatformIO terminal (in vscode) `pio run -t erase`. **NOTE:** If getting issues connecting, you may need to hold down the boot button on the board (or press and release). Once done hit the reset button to restart (although won't do much). 
 
 ## Setup Arduino IDE
 This information for reference if wanting to use the ArduinoIDE
