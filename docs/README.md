@@ -3,7 +3,9 @@
   - [Device](#device)
   - [Pin out Diagram](#pin-out-diagram)
   - [Tips to setup ESP32 in VSCode](#tips-to-setup-esp32-in-vscode)
-  - [Erase ESP32](#erase-esp32)
+  - [Useful Info](#useful-info)
+    - [Platform.io in VSCode](#platformio-in-vscode)
+    - [Erase ESP32](#erase-esp32)
   - [Setup Arduino IDE](#setup-arduino-ide)
     - [Setup ESP32 in ArduinoIDE](#setup-esp32-in-arduinoide)
     - [Fix 'No "Serial" module' issue.](#fix-no-serial-module-issue)
@@ -38,7 +40,13 @@ sudo usermod -a -G lock $USER     # log out and back in of course
    1. Open new PlatformIDE terminal (within VSCode)
    2. Enter `pio settings set projects_dir /new/path/projects/dir`
 
-## Erase ESP32
+
+## Useful Info
+
+### Platform.io in VSCode
+[This site](https://docs.platformio.org/en/latest//integration/ide/vscode.html#) has logs of info on the settings and config that can be applied within VSCode. 
+
+### Erase ESP32
 If you've been playing around with lots of code and want to wipe back to the start you can follow the [steps here](https://community.platformio.org/t/why-i-have-to-keep-pressed-reset-button-every-time-when-loading/6273/4). 
 
 In a PlatformIO terminal (in vscode) `pio run -t erase`. **NOTE:** If getting issues connecting, you may need to hold down the boot button on the board (or press and release). Once done hit the reset button to restart (although won't do much). 
