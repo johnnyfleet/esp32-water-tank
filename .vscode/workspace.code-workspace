@@ -18,6 +18,10 @@
 		{
 			"name": "blank_project",
 			"path": "../blank_project"
+		},
+		{
+			"name": "water_tank",
+			"path": "../water_tank"
 		}
 	],
 	"settings": {}
