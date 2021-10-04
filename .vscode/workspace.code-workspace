@@ -8,14 +8,6 @@
 			"path": "../Blink_LED"
 		},
 		{
-			"name": "211003-213150-espidf-arduino-wifiscan",
-			"path": "../211003-213150-espidf-arduino-wifiscan"
-		},
-		{
-			"name": "211003-214546-esp32dev",
-			"path": "../211003-214546-esp32dev"
-		},
-		{
 			"name": "blank_project",
 			"path": "../blank_project"
 		},
