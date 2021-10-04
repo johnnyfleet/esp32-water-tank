@@ -14,6 +14,10 @@
 		{
 			"name": "211003-214546-esp32dev",
 			"path": "../211003-214546-esp32dev"
+		},
+		{
+			"name": "blank_project",
+			"path": "../blank_project"
 		}
 	],
 	"settings": {}
