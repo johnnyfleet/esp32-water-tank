@@ -10,10 +10,6 @@
 
 #include <Config.h>
 
-// Replace the next variables with your SSID/Password combination
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PW;
-
 // Add your MQTT Broker IP address, example:
 //const char* mqtt_server = "192.168.1.144";
 const char* mqtt_server = MQTT_SERVER;
@@ -32,16 +28,16 @@ void setup_wifi() {
   // We start by connecting to a WiFi network
   Serial.println();
   Serial.print("Connecting to ");
-  Serial.println(ssid);
+  Serial.println(WIFI_SSID);
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(WIFI_SSID, WIFI_PW);
 
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
-    Serial.println("Connecting to WiFi...");
+    Serial.print(".");
   }
 
-  // Serial.println("");
+  Serial.println("");
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
