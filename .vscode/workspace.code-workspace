@@ -14,6 +14,10 @@
 		{
 			"name": "water_tank",
 			"path": "../water_tank"
+		},
+		{
+			"name": "Deep_Sleep",
+			"path": "../Deep_Sleep"
 		}
 	],
 	"settings": {}
