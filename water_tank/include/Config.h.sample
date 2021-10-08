@@ -4,7 +4,7 @@
 #define WIFI_SSID "enter_your_WIFI_SSID"
 #define WIFI_PW "enter_your_WIFI_password"
 #define MQTT_SERVER "enter_your_MQTT_SERVER"
-#define MQTT_PORT 1883
+#define MQTT_PORT 8883
 #define MQTT_USER "enter_your_MQTT_user"
 #define MQTT_PASS "enter_your_MQTT_password"
 
