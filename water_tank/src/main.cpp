@@ -1,15 +1,9 @@
 #include <Arduino.h>
-//#include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+
+//-------------------------Config Information---------------------
 #include <Config.h>
-//#include <Wire.h>
-
-// Update these with values suitable for your network.
-
-const char* ssid = WIFI_SSID;
-const char* password = WIFI_PW;
-const char* mqtt_server = MQTT_SERVER;
 
 static const char *root_ca PROGMEM = R"EOF(
 -----BEGIN CERTIFICATE-----
@@ -45,6 +39,8 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 -----END CERTIFICATE-----
 )EOF";
 
+//------------------------------------------------------------------
+
 #define LED 2
 
 //WiFiClient espClient;
@@ -62,10 +58,10 @@ void setup_wifi() {
     // We start by connecting to a WiFi network
     Serial.println();
     Serial.print("Connecting to ");
-    Serial.println(ssid);
+    Serial.println(WIFI_SSID);
 
     WiFi.mode(WIFI_STA);
-    WiFi.begin(ssid, password);
+    WiFi.begin(WIFI_SSID, WIFI_PW);
 
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
@@ -76,7 +72,7 @@ void setup_wifi() {
 
     Serial.println("");
     Serial.println("WiFi connected");
-    Serial.println("IP address: ");
+    Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
 }
 
@@ -139,7 +135,7 @@ void setup() {
     // Setting insecure disables the fingerprint verification.
     //espClient.setInsecure 2();
 
-    client.setServer(mqtt_server, 8883);
+    client.setServer(MQTT_SERVER, MQTT_PORT);
     client.setCallback(callback);
 
 }
