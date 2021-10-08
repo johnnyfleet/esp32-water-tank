@@ -42,6 +42,10 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 //------------------------------------------------------------------
 
 #define LED 2
+#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
+#define TIME_TO_SLEEP  36000       /* Time ESP32 will go to sleep (in seconds) */
+
+RTC_DATA_ATTR int bootCount = 0;
 
 //WiFiClient espClient;
 WiFiClientSecure espClient;
@@ -49,7 +53,29 @@ PubSubClient client(espClient);
 unsigned long lastMsg = 0;
 #define MSG_BUFFER_SIZE (50)
 char msg[MSG_BUFFER_SIZE];
-int value = 0;
+RTC_DATA_ATTR int value = 0;
+
+
+
+/*
+Method to print the reason by which ESP32
+has been awaken from sleep
+*/
+void print_wakeup_reason(){
+  esp_sleep_wakeup_cause_t wakeup_reason;
+
+  wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch(wakeup_reason)
+  {
+    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
+    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
+    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
+    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
+    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
+    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
+  }
+}
 
 //==========================================
 void setup_wifi() {
@@ -109,7 +135,7 @@ void reconnect() {
             //if (client.connect(clientId.c_str())) {
             Serial.println("connected");
             // Once connected, publish an announcement…
-            client.publish("outTopic", "hello world");
+            //client.publish("outTopic", "hello world");
             // … and resubscribe
             client.subscribe("inTopic");
         } else {
@@ -129,6 +155,14 @@ void setup() {
     delay(500);
     setup_wifi();
 
+    //Increment boot number and print it every reboot
+    ++bootCount;
+    Serial.println("Boot number: " + String(bootCount));
+
+    //Print the wakeup reason for ESP32
+    print_wakeup_reason();
+
+
     pinMode(LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
     //espClient.setFingerprint(fingerprint);
     espClient.setCACert(root_ca);
@@ -136,7 +170,44 @@ void setup() {
     //espClient.setInsecure 2();
 
     client.setServer(MQTT_SERVER, MQTT_PORT);
-    client.setCallback(callback);
+    //client.setCallback(callback);
+
+    if (!client.connected()) {
+        reconnect();
+    }
+    //client.loop();
+
+    unsigned long now = millis();
+    if (now - lastMsg > 2000) {
+        lastMsg = now;
+        ++value;
+        snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
+        Serial.print("Publish message: ");
+        Serial.println(msg);
+        client.publish("outTopic", msg);
+    }
+
+     /*
+        First we configure the wake up source
+        We set our ESP32 to wake up every 5 seconds
+    */
+    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
+    Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
+
+     /*
+    Now that we have setup a wake cause and if needed setup the
+    peripherals state in deep sleep, we can now start going to
+    deep sleep.
+    In the case that no wake up sources were provided but deep
+    sleep was started, it will sleep forever unless hardware
+    reset occurs.
+    */
+    Serial.println("Going to sleep now");
+    delay(1000);
+    Serial.flush(); 
+    esp_deep_sleep_start();
+    Serial.println("This will never be printed");
+
 
 }
 
