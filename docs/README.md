@@ -83,3 +83,9 @@ Run this to add a symlink
 Check in the code for the serial baud rate set and set up the serial monitor for the same. 
 
 9600 is on the standard program. 
+
+## ESP32 Current readings
+Reading of the ESP32 dev kits when running and settled - 55-65ma
+
+## Solar charger
+This gives a lot of good advice [YouTube](https://www.youtube.com/watch?v=gcbzdtRmYrM&ab_channel=G6EJD-David)
