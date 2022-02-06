@@ -11,6 +11,8 @@
     - [Fix 'No "Serial" module' issue.](#fix-no-serial-module-issue)
     - [Fix Python issues on Ubuntu](#fix-python-issues-on-ubuntu)
     - [Set baud rate to 9600](#set-baud-rate-to-9600)
+  - [ESP32 Current readings](#esp32-current-readings)
+  - [Solar charger](#solar-charger)
 
 This page outlines the tips I've learnt as I've tried to set up an internal weather station to compliment the external station. I started with Arduino IDE but prefer VSCode so quickly ported over to that. 
 
@@ -85,7 +87,14 @@ Check in the code for the serial baud rate set and set up the serial monitor for
 9600 is on the standard program. 
 
 ## ESP32 Current readings
-Reading of the ESP32 dev kits when running and settled - 55-65ma
+Reading of the ESP32 dev kits:
+- When running and settled - 55-65ma (Wifi on I think)
+- When running and settled - 48.2ma
+- Deep sleep 4.7ma
+
+Seems to line up with this good [summary comparison here](https://diyi0t.com/reduce-the-esp32-power-consumption/). time to get a firebeetle board. 
 
 ## Solar charger
 This gives a lot of good advice [YouTube](https://www.youtube.com/watch?v=gcbzdtRmYrM&ab_channel=G6EJD-David)
+
+I've got a 1W panel which I think will be sufficient for the project. Start with the dev kit but look to switch to the firebeetle when it arrives. 
