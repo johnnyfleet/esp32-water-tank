@@ -1,31 +1,52 @@
-/*Arduino example sketch to control a JSN-SR04T ultrasonic distance sensor with NewPing libary and Arduino. More info: https://www.makerguides.com */
-// Include the library:
-#include <NewPing.h>
 
-// Define Trig and Echo pin:
-#define trigPin 12
-#define echoPin 27
+#include <Arduino.h>
 
-// Define maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500 cm:
-#define MAX_DISTANCE 400
-// NewPing setup of pins and maximum distance.
+/*********
+  Rui Santos
+  Complete project details at https://RandomNerdTutorials.com/esp32-hc-sr04-ultrasonic-arduino/
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files.
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+*********/
 
-NewPing sonar = NewPing(trigPin, echoPin, MAX_DISTANCE);
+const int trigPin = 12;
+const int echoPin = 27;
+
+//define sound speed in cm/uS
+#define SOUND_SPEED 0.034
+#define CM_TO_INCH 0.393701
+
+long duration;
+float distanceCm;
 
 void setup() {
-  // Open the Serial Monitor at 115200 baudrate to see ping results:
-  Serial.begin(115200);
+  Serial.begin(115200); // Starts the serial communication
+  pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+  pinMode(echoPin, INPUT); // Sets the echoPin as an Input
 }
+
 void loop() {
+  // Clears the trigPin
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  // Sets the trigPin on HIGH state for 10 micro seconds
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  
+  // Reads the echoPin, returns the sound wave travel time in microseconds
+  duration = pulseIn(echoPin, HIGH);
+  
+  // Calculate the distance
+  distanceCm = duration * SOUND_SPEED/2;
 
-    float distance = sonar.ping_median(5);
-
-  if(distance>400 || distance<2) Serial.println("Out of range");
-  else
-  {
-    Serial.print("Distance: ");
-    Serial.print(distance, 1); Serial.println(" cm");
-  }
- 
-  delay(50);
+  
+  // Prints the distance in the Serial Monitor
+  Serial.print("Distance (cm): ");
+  Serial.println(distanceCm);
+  
+  delay(1000);
 }
