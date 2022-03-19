@@ -1,5 +1,6 @@
 
 #include <Arduino.h>
+#include <math.h>
 
 /*********
   Rui Santos
@@ -18,9 +19,14 @@ const int echoPin = 27;
 //define sound speed in cm/uS
 #define SOUND_SPEED 0.034
 #define CM_TO_INCH 0.393701
+#define WATER_TANK_HEIGHT_CM 233.00
+#define WATER_TANK_RADIUS_CM 180.00
+#define WATER_TANK_MAX_WATER_HEIGHT_CM 224.00
 
 long duration;
 float distanceCm;
+float percentFull;
+float waterVolume;
 
 void setup() {
   Serial.begin(115200); // Starts the serial communication
@@ -42,11 +48,17 @@ void loop() {
   
   // Calculate the distance
   distanceCm = duration * SOUND_SPEED/2;
+  percentFull = (1 - (distanceCm - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
+  waterVolume = (((WATER_TANK_HEIGHT_CM - distanceCm)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
 
   
   // Prints the distance in the Serial Monitor
   Serial.print("Distance (cm): ");
   Serial.println(distanceCm);
-  
+  Serial.print("Percent full: ");
+  Serial.println(percentFull);
+  Serial.print("Water volume: ");
+  Serial.println(waterVolume);
+
   delay(1000);
 }

@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"name": "sonar_ping",
+			"path": "."
+		},
+		{
+			"name": "Deep_Sleep",
+			"path": "../Deep_Sleep"
+		},
+		{
+			"name": "water_tank",
+			"path": "../water_tank"
+		}
+	],
+	"settings": {}
+}
