@@ -26,7 +26,7 @@ const int echoPin = 27;
 long duration;
 float distanceCm;
 float percentFull;
-float waterVolume;
+float waterVolumeLtr;
 
 void setup() {
   Serial.begin(115200); // Starts the serial communication
@@ -49,7 +49,7 @@ void loop() {
   // Calculate the distance
   distanceCm = duration * SOUND_SPEED/2;
   percentFull = (1 - (distanceCm - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
-  waterVolume = (((WATER_TANK_HEIGHT_CM - distanceCm)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
+  waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCm)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
 
   
   // Prints the distance in the Serial Monitor
@@ -57,8 +57,8 @@ void loop() {
   Serial.println(distanceCm);
   Serial.print("Percent full: ");
   Serial.println(percentFull);
-  Serial.print("Water volume: ");
-  Serial.println(waterVolume);
+  Serial.print("Water volume (litres): ");
+  Serial.println(waterVolumeLtr);
 
   delay(1000);
 }
