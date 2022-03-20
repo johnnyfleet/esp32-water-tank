@@ -147,17 +147,26 @@ float getMeasurement() {
     float distanceCm = duration * SOUND_SPEED/2;
 
     return distanceCm;
+}
 
-    percentFull = (1 - (distanceCm - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
-    waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCm)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
-  
-    // Prints the distance in the Serial Monitor
-    Serial.print("Distance (cm): ");
-    Serial.println(distanceCm);
-    Serial.print("Percent full: ");
-    Serial.println(percentFull);
-    Serial.print("Water volume (litres): ");
-    Serial.println(waterVolumeLtr);
+int cmpfunc (const void * a, const void * b) {
+   return ( *(int*)a - *(int*)b );
+}
+
+float getMedianMeasurement() {
+
+    int numReadings = 5;
+    float distanceReadings[numReadings];
+    int i;
+
+    for ( i = 0; i < numReadings; i++ ) {
+      distanceReadings[ i ] = getMeasurement(); 
+      delayMicroseconds(100);
+    }
+    
+    qsort(distanceReadings, 5, sizeof(float), cmpfunc);
+
+    return distanceReadings[2];
 }
 
 //=======================================
@@ -275,7 +284,7 @@ void setup() {
     if (now - lastMsg > 2000) {
         lastMsg = now;
         ++value;
-        float distanceCM = getMeasurement();  
+        float distanceCM = getMedianMeasurement();  
         writeMQTTMessage(distanceCM); 
     } 
 /*     unsigned long now = millis();
