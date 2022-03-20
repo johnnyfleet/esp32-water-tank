@@ -2,6 +2,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <math.h>
+//#include "time.h"
 
 /*********
   Rui Santos
@@ -68,15 +69,18 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 const int trigPin = 12;
 const int echoPin = 27;
 
+// NTP server to request epoch time
+const char* ntpServer = "pool.ntp.org";
+
 float percentFull;
-float waterVolumeLtr;
+int waterVolumeLtr;
 RTC_DATA_ATTR int bootCount = 0;
 
 //WiFiClient espClient;
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE (100)
+#define MSG_BUFFER_SIZE (200)
 char msg[MSG_BUFFER_SIZE];
 RTC_DATA_ATTR int value = 0;
 
@@ -176,6 +180,18 @@ float getMeasurement() {
     }
 } */
 
+// Function that gets current epoch time
+unsigned long getTime() {
+  time_t now;
+  struct tm timeinfo;
+  if (!getLocalTime(&timeinfo)) {
+    //Serial.println("Failed to obtain time");
+    return(0);
+  }
+  time(&now);
+  return now;
+}
+
 void writeMQTTMessage(float distanceCM){
     percentFull = (1 - (distanceCM - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
     waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCM)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
@@ -188,8 +204,8 @@ void writeMQTTMessage(float distanceCM){
     Serial.print("Water volume (litres): ");
     Serial.println(waterVolumeLtr);
 
-    //snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"00\",\"id\":\"%d\",\"distance_cm\":\"%d\"}","esp32",distanceCM);
-    snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %ld",value,distanceCM);
+    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i}",getTime(),"esp32",distanceCM,percentFull,waterVolumeLtr);
+    //snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %f",value,distanceCM);
     Serial.print("Publish message: ");
     Serial.println(msg);
     client.publish("outTopic", msg);
@@ -230,6 +246,7 @@ void setup() {
     pinMode(echoPin, INPUT); // Sets the echoPin as an Input
     delay(500);
     setup_wifi();
+    configTime(0, 0, ntpServer);
 
     //Increment boot number and print it every reboot
     ++bootCount;
@@ -297,18 +314,6 @@ void setup() {
 
 void loop() {
 
-    if (!client.connected()) {
-        reconnect();
-    }
-    client.loop();
+    // Does nothing - deep sleep never reaches this far. 
 
-    unsigned long now = millis();
-    if (now - lastMsg > 2000) {
-        lastMsg = now;
-        ++value;
-        snprintf (msg, MSG_BUFFER_SIZE, "hello world #%ld", value);
-        Serial.print("Publish message: ");
-        Serial.println(msg);
-        client.publish("outTopic", msg);
-    }
 }
