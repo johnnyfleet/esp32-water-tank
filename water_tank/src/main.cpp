@@ -1,6 +1,18 @@
 #include <Arduino.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
+#include <math.h>
+
+/*********
+  Rui Santos
+  Complete project details at https://RandomNerdTutorials.com/esp32-hc-sr04-ultrasonic-arduino/
+  
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files.
+  
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+*********/
 
 //-------------------------Config Information---------------------
 #include <Config.h>
@@ -45,13 +57,26 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 #define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP  10      /* Time ESP32 will go to sleep (in seconds) */
 
+
+//define sound speed in cm/uS
+#define SOUND_SPEED 0.034
+#define CM_TO_INCH 0.393701
+#define WATER_TANK_HEIGHT_CM 233.00
+#define WATER_TANK_RADIUS_CM 180.00
+#define WATER_TANK_MAX_WATER_HEIGHT_CM 224.00
+
+const int trigPin = 12;
+const int echoPin = 27;
+
+float percentFull;
+float waterVolumeLtr;
 RTC_DATA_ATTR int bootCount = 0;
 
 //WiFiClient espClient;
 WiFiClientSecure espClient;
 PubSubClient client(espClient);
 unsigned long lastMsg = 0;
-#define MSG_BUFFER_SIZE (50)
+#define MSG_BUFFER_SIZE (100)
 char msg[MSG_BUFFER_SIZE];
 RTC_DATA_ATTR int value = 0;
 
@@ -102,8 +127,37 @@ void setup_wifi() {
     Serial.println(WiFi.localIP());
 }
 
+float getMeasurement() {
+    // Clears the trigPin
+    digitalWrite(trigPin, LOW);
+    delayMicroseconds(2);
+    // Sets the trigPin on HIGH state for 10 micro seconds
+    digitalWrite(trigPin, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(trigPin, LOW);
+  
+    // Reads the echoPin, returns the sound wave travel time in microseconds
+    long duration = pulseIn(echoPin, HIGH);
+  
+    // Calculate the distance
+    float distanceCm = duration * SOUND_SPEED/2;
+
+    return distanceCm;
+
+    percentFull = (1 - (distanceCm - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
+    waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCm)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
+  
+    // Prints the distance in the Serial Monitor
+    Serial.print("Distance (cm): ");
+    Serial.println(distanceCm);
+    Serial.print("Percent full: ");
+    Serial.println(percentFull);
+    Serial.print("Water volume (litres): ");
+    Serial.println(waterVolumeLtr);
+}
+
 //=======================================
-void callback(char* topic, byte* payload, unsigned int length) {
+/* void callback(char* topic, byte* payload, unsigned int length) {
     Serial.print("Message arrived [");
     Serial.print(topic);
     Serial.print("] ");
@@ -120,6 +174,26 @@ void callback(char* topic, byte* payload, unsigned int length) {
     } else {
         digitalWrite(LED, LOW); // Turn the LED off by making the voltage HIGH
     }
+} */
+
+void writeMQTTMessage(float distanceCM){
+    percentFull = (1 - (distanceCM - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
+    waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCM)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
+  
+    // Prints the distance in the Serial Monitor
+    Serial.print("Distance (cm): ");
+    Serial.println(distanceCM);
+    Serial.print("Percent full: ");
+    Serial.println(percentFull);
+    Serial.print("Water volume (litres): ");
+    Serial.println(waterVolumeLtr);
+
+    //snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"00\",\"id\":\"%d\",\"distance_cm\":\"%d\"}","esp32",distanceCM);
+    snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %ld",value,distanceCM);
+    Serial.print("Publish message: ");
+    Serial.println(msg);
+    client.publish("outTopic", msg);
+
 }
 
 //=====================================
@@ -137,7 +211,7 @@ void reconnect() {
             // Once connected, publish an announcement…
             //client.publish("outTopic", "hello world");
             // … and resubscribe
-            client.subscribe("inTopic");
+            //client.subscribe("inTopic");
         } else {
             Serial.print("failed, rc=");
             Serial.print(client.state());
@@ -152,6 +226,8 @@ void reconnect() {
 void setup() {
     delay(500);
     Serial.begin(115200);
+    pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
+    pinMode(echoPin, INPUT); // Sets the echoPin as an Input
     delay(500);
     setup_wifi();
 
@@ -161,7 +237,6 @@ void setup() {
 
     //Print the wakeup reason for ESP32
     print_wakeup_reason();
-
 
     pinMode(LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
     //espClient.setFingerprint(fingerprint);
@@ -177,7 +252,16 @@ void setup() {
     }
     //client.loop();
 
+
+
     unsigned long now = millis();
+    if (now - lastMsg > 2000) {
+        lastMsg = now;
+        ++value;
+        float distanceCM = getMeasurement();  
+        writeMQTTMessage(distanceCM); 
+    } 
+/*     unsigned long now = millis();
     if (now - lastMsg > 2000) {
         lastMsg = now;
         ++value;
@@ -185,7 +269,7 @@ void setup() {
         Serial.print("Publish message: ");
         Serial.println(msg);
         client.publish("outTopic", msg);
-    }
+    } */
 
      /*
         First we configure the wake up source
