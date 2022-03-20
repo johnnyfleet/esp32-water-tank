@@ -66,6 +66,7 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 #define WATER_TANK_RADIUS_CM 180.00
 #define WATER_TANK_MAX_WATER_HEIGHT_CM 224.00
 
+
 const int trigPin = 12;
 const int echoPin = 27;
 
@@ -134,7 +135,7 @@ void setup_wifi() {
 float getMeasurement() {
     // Clears the trigPin
     digitalWrite(trigPin, LOW);
-    delayMicroseconds(2);
+    delayMicroseconds(4);
     // Sets the trigPin on HIGH state for 10 micro seconds
     digitalWrite(trigPin, HIGH);
     delayMicroseconds(10);
@@ -149,10 +150,16 @@ float getMeasurement() {
     return distanceCm;
 }
 
+/*
+Simple function to sort array of measurements.
+*/
 int cmpfunc (const void * a, const void * b) {
    return ( *(int*)a - *(int*)b );
 }
 
+/*
+Get 5 measurements with 100ms gap and then return the median (avoid issues)
+*/
 float getMedianMeasurement() {
 
     int numReadings = 5;
@@ -160,7 +167,9 @@ float getMedianMeasurement() {
     int i;
 
     for ( i = 0; i < numReadings; i++ ) {
-      distanceReadings[ i ] = getMeasurement(); 
+      distanceReadings[ i ] = getMeasurement();
+      Serial.print("Reading: ");
+      Serial.println(distanceReadings[i]); 
       delayMicroseconds(100);
     }
     
@@ -168,26 +177,6 @@ float getMedianMeasurement() {
 
     return distanceReadings[2];
 }
-
-//=======================================
-/* void callback(char* topic, byte* payload, unsigned int length) {
-    Serial.print("Message arrived [");
-    Serial.print(topic);
-    Serial.print("] ");
-    for (int i = 0; i < length; i++) {
-        Serial.print((char)payload[i]);
-    }
-    Serial.println();
-
-    // Switch on the LED if an 1 was received as first character
-    if ((char)payload[0] == '1') {
-        digitalWrite(LED, HIGH); // Turn the LED on (Note that LOW is the voltage level
-        // but actually the LED is on; this is because
-        // it is active low on the ESP-01)
-    } else {
-        digitalWrite(LED, LOW); // Turn the LED off by making the voltage HIGH
-    }
-} */
 
 // Function that gets current epoch time
 unsigned long getTime() {
@@ -221,6 +210,13 @@ void writeMQTTMessage(float distanceCM){
 
 }
 
+String getID(){
+    byte mac[6];
+    WiFi.macAddress(mac);
+    String uniq =  String(mac[0],HEX) +String(mac[1],HEX) +String(mac[2],HEX) +String(mac[3],HEX) + String(mac[4],HEX) + String(mac[5],HEX);
+    return uniq;
+}
+
 //=====================================
 void reconnect() {
     // Loop until we're reconnected
@@ -233,10 +229,7 @@ void reconnect() {
         if (client.connect(clientId.c_str(), MQTT_USER, MQTT_PASS)) {
             //if (client.connect(clientId.c_str())) {
             Serial.println("connected");
-            // Once connected, publish an announcement…
-            //client.publish("outTopic", "hello world");
-            // … and resubscribe
-            //client.subscribe("inTopic");
+
         } else {
             Serial.print("failed, rc=");
             Serial.print(client.state());
