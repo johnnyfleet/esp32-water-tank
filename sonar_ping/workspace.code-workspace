@@ -18,6 +18,10 @@
 		{
 			"name": "mqtt",
 			"path": "../mqtt"
+		},
+		{
+			"name": "new_ping",
+			"path": "../new_ping"
 		}
 	],
 	"settings": {}
