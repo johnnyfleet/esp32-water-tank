@@ -249,6 +249,8 @@ void reconnect() {
 
 //================================================
 void setup() {
+    pinMode(LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
+    digitalWrite(LED, HIGH);
     delay(500);
     Serial.begin(115200);
     pinMode(trigPin, OUTPUT); // Sets the trigPin as an Output
@@ -263,9 +265,6 @@ void setup() {
 
     //Print the wakeup reason for ESP32
     print_wakeup_reason();
-
-    pinMode(LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
-    digitalWrite(LED, HIGH);
 
     //espClient.setFingerprint(fingerprint);
     espClient.setCACert(root_ca);
