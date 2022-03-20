@@ -56,7 +56,7 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 
 #define LED 2
 #define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  10      /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP  60      /* Time ESP32 will go to sleep (in seconds) */
 
 
 //define sound speed in cm/uS
@@ -213,7 +213,7 @@ void writeMQTTMessage(float distanceCM){
     Serial.print("Water volume (litres): ");
     Serial.println(waterVolumeLtr);
 
-    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i}",getTime(),"esp32",distanceCM,percentFull,waterVolumeLtr);
+    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i}",getTime(),"esp32",roundf(distanceCM*100.0)/100.0,roundf(percentFull*100.0)/100.0,waterVolumeLtr);
     //snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %f",value,distanceCM);
     Serial.print("Publish message: ");
     Serial.println(msg);
@@ -265,6 +265,7 @@ void setup() {
     print_wakeup_reason();
 
     pinMode(LED, OUTPUT); // Initialize the BUILTIN_LED pin as an output
+    digitalWrite(LED, LOW);
     //espClient.setFingerprint(fingerprint);
     espClient.setCACert(root_ca);
     // Setting insecure disables the fingerprint verification.
@@ -318,11 +319,11 @@ void setup() {
     esp_deep_sleep_start();
     Serial.println("This will never be printed");
 
-
 }
 
 void loop() {
 
-    // Does nothing - deep sleep never reaches this far. 
+    // Does nothing - due to deep sleep we never reach this far. 
+    Serial.println("This will never be printed");
 
 }
