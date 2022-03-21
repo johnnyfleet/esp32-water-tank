@@ -204,7 +204,7 @@ void writeMQTTMessage(){
 
     NOTE #2: Doesn't seem a way to supply ano seconds so just appended 000000 to the time to make up. Might be irrelevant. 
     */
-    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%5.2f,\"percent_full\":%5.2f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",
+    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld\",\"id\":\"%s\",\"distance_cm\":%5.2f,\"percent_full\":%5.2f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",
         getTime(),
         getDeviceID().c_str(),
         distanceCM,
