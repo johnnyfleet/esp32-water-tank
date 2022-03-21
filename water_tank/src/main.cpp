@@ -1,3 +1,13 @@
+/* Water Tank work
+
+This is the main project which builds the water tank code to measure the water volume in the water tank. There are 3 main steps
+
+1. Measure the distance from top of tank to water level & calculate volume. 
+2. Send that information to MQTT broker
+3. Go into deep sleep to conserve battery. 
+
+*/
+
 #include <Arduino.h>
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
@@ -66,7 +76,7 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 #define TRIGGER_PIN  12                             /* Arduino pin tied to trigger pin on the ultrasonic sensor. */
 #define ECHO_PIN     27                             /* Arduino pin tied to echo pin on the ultrasonic sensor. */
 #define MAX_DISTANCE 300                            /* Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm. */
-#define MQTT_TOPIC "rtl_433/outside/water_tank/"    /* Proposed base topic to post to */
+#define MQTT_TOPIC "sensors/outside/water_tank/"    /* Proposed base topic to post to */
 #define MSG_BUFFER_SIZE (200)                       /* Maximum message size for MQTT */
 
 
@@ -77,8 +87,8 @@ const char* ntpServer = "pool.ntp.org";
 float distanceCM;
 float percentFull;
 int waterVolumeLtr;
-RTC_DATA_ATTR int bootCount = 0;                    /* Boot count - persists over deep sleep */
 char msg[MSG_BUFFER_SIZE];                          /* Message size for MQTT*/
+RTC_DATA_ATTR int bootCount = 0;                    /* Boot count - persists over deep sleep */
 
 
 WiFiClientSecure espClient;
@@ -178,17 +188,41 @@ Send message to MQTT broker.
 */
 void writeMQTTMessage(){
     
-    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",getTime(),getDeviceID().c_str(),roundf(distanceCM*100.0)/100.0,roundf(percentFull*100.0)/100.0,waterVolumeLtr,bootCount);
-    //snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %f",value,distanceCM);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
+    //Build full MQTT topic - appending unique ID
     char fullTopic[100];   // array to hold the result.
     strcpy(fullTopic,MQTT_TOPIC); // copy string one into the result.
     strcat(fullTopic,getDeviceID().c_str()); // append string two to the result.
+
+    /* Build message. 
+    NOTE#1: The funny in line replacement notation (e.g. %ld) is c printf style format codes. 
+    See https://www.l3harrisgeospatial.com/docs/format_codes_cprintf.html
+
+    %ld     = long digit
+    %s      = string
+    %5.2f   = float with total width of 5 digit and 2 decimal places.
+    %i      = integer
+
+    NOTE #2: Doesn't seem a way to supply ano seconds so just appended 000000 to the time to make up. Might be irrelevant. 
+    */
+    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%5.2f,\"percent_full\":%5.2f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",
+        getTime(),
+        getDeviceID().c_str(),
+        distanceCM,
+        percentFull,
+        waterVolumeLtr,
+        bootCount
+    );
+    
+    Serial.print("Publishing message: ");
+    Serial.println(msg);
+    
+    //Send message
     client.publish(fullTopic, msg);
 }
 
-//=====================================
+/* 
+ Reconnect to MQTT broker
+*/ 
 void reconnect() {
     // Loop until we're reconnected
     while (!client.connected()) {
@@ -211,13 +245,15 @@ void reconnect() {
     }
 }
 
-//================================================
+/*
+ Main program - always runs here due to deep sleep
+*/
 void setup() {
     pinMode(LED, OUTPUT);       // Initialize the BUILTIN_LED pin as an output
     digitalWrite(LED, HIGH);    // Turn on LED (so you know when in and out of deep sleep)
     //delay(500);
     Serial.begin(115200);
-    delay(500);
+    //delay(500);
     setup_wifi();
     configTime(0, 0, ntpServer);// Setup NTP server location to get correct epoch time. 
 
@@ -261,6 +297,9 @@ void setup() {
     Serial.println("This will never be printed");
 }
 
+/*
+ Normally where main loop of the program runs but never reaches this far due to deep sleep. 
+*/
 void loop() {
     // Does nothing - due to deep sleep we never reach this far. 
     Serial.println("This will never be printed");
