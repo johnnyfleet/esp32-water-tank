@@ -2,6 +2,7 @@
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include <math.h>
+#include <NewPing.h>
 //#include "time.h"
 
 /*********
@@ -55,17 +56,17 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 //------------------------------------------------------------------
 
 #define LED 2
-#define uS_TO_S_FACTOR 1000000  /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  10      /* Time ESP32 will go to sleep (in seconds) */
-
-
-//define sound speed in cm/uS
-#define SOUND_SPEED 0.034
-#define CM_TO_INCH 0.393701
+#define uS_TO_S_FACTOR 1000000                  /* Conversion factor for micro seconds to seconds */
+#define TIME_TO_SLEEP  10                       /* Time ESP32 will go to sleep (in seconds) */
+#define SOUND_SPEED 0.034                       /* define sound speed in cm/uS */
+//#define CM_TO_INCH 0.393701                   /* not used - ignore */
 #define WATER_TANK_HEIGHT_CM 233.00
 #define WATER_TANK_RADIUS_CM 180.00
 #define WATER_TANK_MAX_WATER_HEIGHT_CM 224.00
-
+#define TRIGGER_PIN  12                         /* Arduino pin tied to trigger pin on the ultrasonic sensor. */
+#define ECHO_PIN     27                         /* Arduino pin tied to echo pin on the ultrasonic sensor. */
+#define MAX_DISTANCE 300                        /* Maximum distance we want to ping for (in centimeters). Maximum sensor distance is rated at 400-500cm. */
+#define MQTT_TOPIC "rtl_433/outside/water_tank/"/* Proposed base topic to post to */
 
 const int trigPin = 12;
 const int echoPin = 27;
@@ -85,7 +86,7 @@ unsigned long lastMsg = 0;
 char msg[MSG_BUFFER_SIZE];
 RTC_DATA_ATTR int value = 0;
 
-
+NewPing sonar(TRIGGER_PIN, ECHO_PIN, MAX_DISTANCE);
 
 /*
 Method to print the reason by which ESP32
@@ -190,6 +191,13 @@ unsigned long getTime() {
   return now;
 }
 
+String getID(){
+    byte mac[6];
+    WiFi.macAddress(mac);
+    String uniq =  String(mac[0],HEX) +String(mac[1],HEX) +String(mac[2],HEX) +String(mac[3],HEX) + String(mac[4],HEX) + String(mac[5],HEX);
+    return uniq;
+}
+
 void writeMQTTMessage(float distanceCM){
     percentFull = (1 - (distanceCM - 9) / WATER_TANK_MAX_WATER_HEIGHT_CM ) * 100; 
     waterVolumeLtr = (((WATER_TANK_HEIGHT_CM - distanceCM)/100) * pow(WATER_TANK_RADIUS_CM/100,2) * M_PI) *1000;
@@ -202,19 +210,14 @@ void writeMQTTMessage(float distanceCM){
     Serial.print("Water volume (litres): ");
     Serial.println(waterVolumeLtr);
 
-    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",getTime(),"esp32",roundf(distanceCM*100.0)/100.0,roundf(percentFull*100.0)/100.0,waterVolumeLtr,value);
+    snprintf (msg, MSG_BUFFER_SIZE, "{\"time\":\"%ld.000000\",\"id\":\"%s\",\"distance_cm\":%f,\"percent_full\":%f,\"water_volume_ltr\":%i,\"reboot_cycles\":%i}",getTime(),getID().c_str(),roundf(distanceCM*100.0)/100.0,roundf(percentFull*100.0)/100.0,waterVolumeLtr,value);
     //snprintf (msg, MSG_BUFFER_SIZE, "the title of %ld is %f",value,distanceCM);
     Serial.print("Publish message: ");
     Serial.println(msg);
-    client.publish("outTopic", msg);
-
-}
-
-String getID(){
-    byte mac[6];
-    WiFi.macAddress(mac);
-    String uniq =  String(mac[0],HEX) +String(mac[1],HEX) +String(mac[2],HEX) +String(mac[3],HEX) + String(mac[4],HEX) + String(mac[5],HEX);
-    return uniq;
+    char fullTopic[100];   // array to hold the result.
+    strcpy(fullTopic,MQTT_TOPIC); // copy string one into the result.
+    strcat(fullTopic,getID().c_str()); // append string two to the result.
+    client.publish(fullTopic, msg);
 }
 
 //=====================================
@@ -255,6 +258,8 @@ void setup() {
     //Increment boot number and print it every reboot
     ++bootCount;
     Serial.println("Boot number: " + String(bootCount));
+    Serial.println("ID: " + String(getID()));
+
 
     //Print the wakeup reason for ESP32
     print_wakeup_reason();
@@ -278,7 +283,8 @@ void setup() {
     if (now - lastMsg > 2000) {
         lastMsg = now;
         ++value;
-        float distanceCM = getMedianMeasurement();  
+        //float distanceCM = getMedianMeasurement();  
+        float distanceCM = sonar.ping_median(5) * SOUND_SPEED/2;  
         writeMQTTMessage(distanceCM); 
     } 
 /*     unsigned long now = millis();
@@ -293,7 +299,7 @@ void setup() {
 
      /*
         First we configure the wake up source
-        We set our ESP32 to wake up every 5 seconds
+        We set our ESP32 to wake up on set time.
     */
 
     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
