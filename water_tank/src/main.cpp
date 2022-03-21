@@ -251,9 +251,9 @@ void reconnect() {
 void setup() {
     pinMode(LED, OUTPUT);       // Initialize the BUILTIN_LED pin as an output
     digitalWrite(LED, HIGH);    // Turn on LED (so you know when in and out of deep sleep)
-    //delay(500);
+    
     Serial.begin(115200);
-    //delay(500);
+    
     setup_wifi();
     configTime(0, 0, ntpServer);// Setup NTP server location to get correct epoch time. 
 
