@@ -68,7 +68,7 @@ emyPxgcYxn/eR44/KJ4EBs+lVDR3veyJm+kXQ99b21/+jh5Xos1AnX5iItreGCc=
 
 #define LED 2                                       /* Blue LED pin number */
 #define uS_TO_S_FACTOR 1000000                      /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  10                           /* Time ESP32 will go to sleep (in seconds) */
+#define TIME_TO_SLEEP  52                           /* Time ESP32 will go to sleep (in seconds) */
 #define SOUND_SPEED 0.034                           /* define sound speed in cm/uS */
 #define WATER_TANK_HEIGHT_CM 233.00                 /* full height of tank (internal) */
 #define WATER_TANK_RADIUS_CM 180.00                 /* radius of tank (roughly internal) */
