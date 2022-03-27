@@ -249,6 +249,7 @@ void reconnect() {
  Main program - always runs here due to deep sleep
 */
 void setup() {
+    delay(500);                 // Seems adding a slight delay at start helps to come out of deep sleep. 100 might be enough, but reccommended 500 just to be sure. 
     pinMode(LED, OUTPUT);       // Initialize the BUILTIN_LED pin as an output
     digitalWrite(LED, HIGH);    // Turn on LED (so you know when in and out of deep sleep)
     
